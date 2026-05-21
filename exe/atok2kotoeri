@@ -1,0 +1,93 @@
+#!/usr/bin/env ruby
+
+HINSHI_ATOK2KOTOERI = {
+  "カ行五段" => "無品詞",
+  "ガ行五段" => "無品詞",
+  "サ変動詞" => "無品詞",
+  "サ行五段" => "無品詞",
+  "ザ変動詞" => "無品詞",
+  "タ行五段" => "無品詞",
+  "ナ行五段" => "無品詞",
+  "バ行五段" => "無品詞",
+  "マ行五段" => "無品詞",
+  "ラ行五段" => "無品詞",
+  "ワ行五段" => "無品詞",
+  "一段動詞" => "無品詞",
+  "冠数詞" => "普通名詞",
+  "副詞" => "無品詞",
+  "助数詞" => "数字列接尾語",
+  "単漢字" => "無品詞",
+  "名詞" => "普通名詞",
+  "名詞サ変" => "サ変名詞",
+  "名詞ザ変" => "サ変名詞",
+  "名詞形動" => "形容動詞",
+  "固有一般" => "普通名詞",
+  "固有人名" => "人名",
+  "固有人姓" => "人名",
+  "固有商品" => "普通名詞",
+  "固有地名" => "地名",
+  "固有組織" => "普通名詞",
+  "形動タリ" => "形容動詞",
+  "形容動詞" => "形容動詞",
+  "形容詞" => "形容詞",
+  "感動詞" => "無品詞",
+  "接尾語" => "無品詞",
+  "接続詞" => "無品詞",
+  "接頭語" => "無品詞",
+  "数詞" => "普通名詞",
+  "独立語" => "無品詞",
+  "短縮読み" => "無品詞",
+  "連体詞" => "無品詞",
+  "顔文字" => "無品詞",
+}
+
+def each_atok_entry(file)
+  open_input(file) do |io|
+    io.each_line(chomp: true) do |line|
+      next if /^(!!|\s*$)/ === line
+
+      yomi, tango, hinshi = line.split(/\t+/)
+      next if hinshi.nil?
+
+      yield yomi, tango, hinshi.sub(/[*$]+\z/, "")
+    end
+  end
+end
+
+def open_input(file)
+  if file == "-"
+    setup_input(STDIN)
+    yield STDIN
+  else
+    File.open(file, "rb") do |io|
+      setup_input(io)
+      yield io
+    end
+  end
+end
+
+def setup_input(io)
+  io.binmode
+  if (encoding = io.set_encoding_by_bom)
+    io.set_encoding(encoding, Encoding::UTF_8)
+  else
+    io.set_encoding(Encoding::UTF_8)
+  end
+end
+
+def quote(word)
+  '"' << word.gsub('"', '""') << '"'
+end
+
+$stdout.set_encoding(Encoding::UTF_8)
+
+files = ARGV.empty? ? ["-"] : ARGV
+
+files.each do |file|
+  each_atok_entry(file) do |yomi, tango, hinshi|
+    newhinshi = HINSHI_ATOK2KOTOERI.fetch(hinshi, "無品詞")
+    puts [yomi, tango, newhinshi].map { |word| quote(word) }.join(",")
+  rescue EncodingError => e
+    warn "skipped: %s %s [%s]: #{e}" % [yomi, tango, hinshi]
+  end
+end
