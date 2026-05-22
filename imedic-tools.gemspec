@@ -24,6 +24,6 @@ Gem::Specification.new do |spec|
     `git ls-files -z`.split("\x0")
   end
   spec.bindir = "exe"
-  spec.executables = ["atok2kotoeri", "atok2msime", "msime2atok"]
+  spec.executables = ["atok2atok", "atok2kotoeri", "atok2msime", "msime2atok"]
   spec.require_paths = ["lib"]
 end

@@ -27,6 +27,7 @@ This gem includes three tools:
 - `atok2msime`: Converts ATOK word-list files to Microsoft IME format
 - `msime2atok`: Converts Microsoft IME word-list files to ATOK format
 - `atok2kotoeri`: Converts ATOK word-list files to Kotoeri CSV format
+- `atok2atok`: Normalizes ATOK word-list files to UTF-16LE with a BOM and CRLF line endings
 
 Usage is common to all tools:
 

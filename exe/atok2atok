@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+def each_atok_line(file)
+  open_input(file) do |io|
+    io.each_line(chomp: true) do |line|
+      yield line.delete_suffix("\r")
+    end
+  end
+end
+
+def open_input(file)
+  if file == "-"
+    setup_input(STDIN)
+    yield STDIN
+  else
+    File.open(file, "rb") do |io|
+      setup_input(io)
+      yield io
+    end
+  end
+end
+
+def setup_input(io)
+  io.binmode
+  if (encoding = io.set_encoding_by_bom)
+    io.set_encoding(encoding, Encoding::UTF_8)
+  else
+    io.set_encoding(Encoding::UTF_8)
+  end
+end
+
+$stdout.set_encoding(Encoding::UTF_16LE, Encoding::UTF_8, crlf_newline: true)
+$stdout.write("\uFEFF")
+
+puts "!!ATOK_TANGO_TEXT_HEADER_1"
+
+files = ARGV.empty? ? ["-"] : ARGV
+
+files.each do |file|
+  each_atok_line(file) do |line|
+    next if line.empty? || line == "!!ATOK_TANGO_TEXT_HEADER_1"
+
+    puts line
+  end
+end
