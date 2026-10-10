@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: ["3.1", "4.0"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Check Ruby syntax
+        run: git ls-files -z -- exe lib | xargs -0 -n 1 ruby -c
+
+      - name: Build gem
+        run: bundle exec rake build
+
+  test-gate:
+    name: Test
+    if: always()
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check matrix results
+        env:
+          RESULT: ${{ needs.check.result }}
+        run: test "$RESULT" = success
