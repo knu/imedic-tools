@@ -35,3 +35,14 @@ jobs:
 
       - name: Build gem
         run: bundle exec rake build
+
+  test-gate:
+    name: Test
+    if: always()
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check matrix results
+        env:
+          RESULT: ${{ needs.check.result }}
+        run: test "$RESULT" = success
